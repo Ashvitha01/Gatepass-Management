@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Emergency Gate Pass Request</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #ffecd2, #fcb69f);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      width: 400px;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 25px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+      color: #444;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #ff5e5e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #e64848;
+    }
+
+    #responseMsg {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Emergency Gate Pass Request</h2>
+
+    <form id="emergencyForm">
+      <label for="reason">Reason</label>
+      <textarea id="reason" name="reason" rows="4" required placeholder="Explain the emergency..."></textarea>
+
+      <label for="email">Your Email</label>
+      <input type="email" id="email" name="email" required placeholder="you@example.com">
+
+      <label for="exittime">Exit Time</label>
+      <input type="datetime-local" id="exittime" name="exittime" required>
+
+      <button type="submit">Submit Emergency Request</button>
+	  
+	  <div class=""mb-5">
+	  			<br> 
+	  			<button id="backBtn" class="btn btn-primary" onclick="history.back()">Cancel</button>
+	  			</div>
+    </form>
+
+    <p id="responseMsg"></p>
+  </div>
+
+  <script>
+    document.getElementById("emergencyForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const studentId = localStorage.getItem("studentId");
+      if (!studentId) {
+        alert("Please log in first.");
+        window.location.href = "student-login.html";
+        return;
+      }
+
+      const reason = document.getElementById("reason").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const exittime = document.getElementById("exittime").value;
+
+      const requestBody = {
+        studentid: {
+          userId: studentId
+        },
+        reason: reason,
+        email: email,
+        exittime: exittime
+      };
+
+      fetch("http://192.168.3.84:8080/api/gatepass/emergencyrequest", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestBody)
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(text => { throw new Error(text); });
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert("Emergency request submitted successfully!");
+        window.location.href = "student-dashboard.html";
+      })
+	  .catch(async (error) => {
+	    const msg = document.getElementById("responseMsg");
+	    msg.style.color = "red";
+
+	    let errorMessage = "An unexpected error occurred.";
+	    try {
+	      const parsed = JSON.parse(error.message);
+	      if (parsed.message) {
+	        errorMessage = parsed.message;
+	      } else if (parsed.error) {
+	        errorMessage = parsed.error;
+	      } else if (parsed.trace) {
+	        const match = parsed.trace.match(/Exception: ([^\n]+)/);
+	        if (match && match[1]) {
+	          errorMessage = match[1];
+	        }
+	      }
+	    } catch {
+	      errorMessage = error.message;
+	    }
+
+	    msg.innerText = "Error: " + errorMessage;
+	  });
+
+    });
+
+    window.onload = function () {
+      const studentEmail = localStorage.getItem("studentEmail");
+      if (studentEmail) {
+        document.getElementById("email").value = studentEmail;
+      }
+    };
+  </script>
+
+</body>
+</html>

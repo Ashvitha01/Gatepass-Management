@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Security Incident Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #e0f7fa, #ffffff);
+      margin: 0;
+      padding: 50px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    h2 {
+      color: #1e293b;
+      font-size: 36px;
+      margin-bottom: 40px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .btn-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 25px;
+      margin-bottom: 50px;
+    }
+
+    button {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      border: none;
+      padding: 16px 30px;
+      font-size: 17px;
+      font-weight: 500;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 250px;
+    }
+
+    button:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .back-button {
+      background: linear-gradient(135deg, #64748b, #475569);
+    }
+
+    .back-button:hover {
+      background: linear-gradient(135deg, #4b5563, #334155);
+    }
+
+    @media (max-width: 500px) {
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🔐 Security Incident Management</h2>
+
+  <div class="btn-container">
+    <button onclick="location.href='security-incident.html'">📋 View All Security Incidents</button>
+    <button onclick="location.href='resolve-security-incidents.html'">🛠️ Resolve Security Incidents</button>
+  </div>
+
+  <button class="back-button" onclick="window.location.href='staff-dashboard.html'">⬅️ Back to Dashboard</button>
+
+  <script>
+    const staffId = localStorage.getItem("staffId");
+    if (!staffId) {
+      alert("Please login first.");
+      window.location.href = "staff-login.html";
+    }
+  </script>
+
+</body>
+</html>

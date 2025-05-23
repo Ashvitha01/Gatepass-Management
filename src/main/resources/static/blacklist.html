@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Blacklist Student Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f3f4f6;
+      padding: 30px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #1f2937;
+    }
+
+    .section {
+      background-color: white;
+      padding: 20px;
+      margin: 20px auto;
+      border-radius: 12px;
+      max-width: 700px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      padding: 10px 16px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #2563eb;
+    }
+
+    .response {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #1d4ed8;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+
+    th {
+      background-color: #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Blacklist Student Panel</h2>
+
+<div class="section">
+  <h3>Add Student to Blacklist</h3>
+  <label for="blacklistUserId">Student ID:</label>
+  <input type="text" id="blacklistUserId" placeholder="Enter Student ID">
+
+  <label for="blacklistReason">Reason:</label>
+  <input type="text" id="blacklistReason" placeholder="Enter Reason for Blacklisting">
+
+  <button onclick="blacklistStudent()">Add to Blacklist</button>
+
+  <div class="response" id="blacklistResponse"></div>
+</div>
+
+<div class="section">
+  <h3>Check if Student is Blacklisted</h3>
+  <label for="checkUserId">Student ID:</label>
+  <input type="text" id="checkUserId" placeholder="Enter Student ID">
+
+  <button onclick="checkBlacklist()">Check</button>
+
+  <div class="response" id="checkResponse"></div>
+</div>
+
+<div class="section">
+  <h3>Remove Student from Blacklist</h3>
+  <label for="removeUserId">Student ID:</label>
+  <input type="text" id="removeUserId" placeholder="Enter Student ID">
+
+  <button onclick="removeBlacklist()">Remove</button>
+
+  <div class="response" id="removeResponse"></div>
+</div>
+
+<div class="section">
+  <h3>Fetch All Blacklisted Students</h3>
+  <button onclick="fetchAllBlacklisted()">Fetch All</button>
+
+  <div id="allBlacklistResponse">
+    <table id="blacklistTable" style="display: none;">
+      <thead>
+        <tr>
+          <th>Student ID</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>Blacklisted At</th>
+        </tr>
+      </thead>
+      <tbody id="blacklistTableBody">
+        <!-- Filled dynamically -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div style="text-align: center; margin-top: 30px;">
+  <button id="backBtn" onclick="history.back()">🔙 Back</button>
+</div>
+
+<script>
+  const baseUrl = "http://192.168.3.84:8080/api/blackliststudent";
+
+  function blacklistStudent() {
+    const userId = document.getElementById("blacklistUserId").value.trim();
+    const reason = document.getElementById("blacklistReason").value.trim();
+
+    if (!userId || !reason) {
+      alert("Please fill all fields.");
+      return;
+    }
+
+    // Step 1: Check if the student is already blacklisted
+    fetch(`${baseUrl}/checkblacklistedornot/${encodeURIComponent(userId)}`)
+      .then(res => res.json())
+      .then(isBlacklisted => {
+        if (isBlacklisted) {
+          alert(`Student ${userId} is already in the blacklist.`);
+          document.getElementById("blacklistResponse").innerText = `Student ${userId} is already blacklisted.`;
+        } else {
+          // Step 2: Proceed to blacklist
+          fetch(`${baseUrl}/add?userId=${encodeURIComponent(userId)}&reason=${encodeURIComponent(reason)}`, {
+            method: 'POST'
+          })
+          .then(res => {
+            if (!res.ok) {
+              throw new Error("Failed to add to blacklist");
+            }
+            return res.json();
+          })
+          .then(data => {
+            const studentId = data.student?.userId || userId;
+            const blacklistReason = data.reason || reason;
+            document.getElementById("blacklistResponse").innerText = `Student ${studentId} blacklisted for: "${blacklistReason}"`;
+          })
+          .catch(err => {
+            console.error("Blacklist error:", err);
+            alert("Failed to blacklist student. Check server logs.");
+          });
+        }
+      })
+      .catch(err => {
+        console.error("Error checking blacklist status:", err);
+        alert("Error verifying if student is already blacklisted.");
+      });
+  }
+
+  function checkBlacklist() {
+    const userId = document.getElementById("checkUserId").value.trim();
+    if (!userId) {
+      alert("Please enter Student ID.");
+      return;
+    }
+
+    fetch(`${baseUrl}/checkblacklistedornot/${encodeURIComponent(userId)}`)
+      .then(res => res.json())
+      .then(isBlacklisted => {
+        document.getElementById("checkResponse").innerText = isBlacklisted
+          ? `Student ${userId} is currently BLACKLISTED.`
+          : `Student ${userId} is NOT blacklisted.`;
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Error checking blacklist status.");
+      });
+  }
+
+  function removeBlacklist() {
+    const userId = document.getElementById("removeUserId").value.trim();
+    if (!userId) {
+      alert("Please enter Student ID.");
+      return;
+    }
+
+    fetch(`${baseUrl}/remove/${encodeURIComponent(userId)}`, {
+      method: 'DELETE'
+    })
+    .then(res => res.text())
+    .then(msg => {
+      document.getElementById("removeResponse").innerText = msg;
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Failed to remove from blacklist.");
+    });
+  }
+
+  function fetchAllBlacklisted() {
+    fetch(`${baseUrl}/getallblacklist`)
+      .then(res => res.json())
+      .then(data => {
+        const table = document.getElementById("blacklistTable");
+        const tbody = document.getElementById("blacklistTableBody");
+        tbody.innerHTML = "";
+
+        if (data.length === 0) {
+          alert("No students are currently blacklisted.");
+          table.style.display = "none";
+          return;
+        }
+
+        data.forEach(entry => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+		  <td>${entry.studentId || 'N/A'}</td>
+            <td>${entry.reason || 'N/A'}</td>
+            <td>${entry.status || 'N/A'}</td>
+            <td>${entry.blacklistedAt || 'N/A'}</td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        table.style.display = "table";
+      })
+      .catch(err => {
+        console.error("Fetch error:", err);
+        alert("Failed to fetch blacklisted students.");
+      });
+  }
+</script>
+
+</body>
+</html>

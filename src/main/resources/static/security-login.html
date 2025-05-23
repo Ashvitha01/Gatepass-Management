@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Security Login</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-container {
+      background-color: #fff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      width: 350px;
+      animation: slideIn 0.4s ease-in-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #333;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+      color: #444;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #28a745;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .message {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 10px;
+      color: red;
+    }
+
+    .secondary-button {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #6c757d;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .secondary-button:hover {
+      background-color: #5a6268;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <h2>Security Login</h2>
+    <form onsubmit="loginSecurity(event)">
+      <label>User ID</label>
+      <input type="text" id="userId" required>
+
+      <label>Password</label>
+      <input type="password" id="password" required>
+
+      <button type="submit">Login</button>
+
+      <button type="button" class="secondary-button" onclick="window.location.href='changepassword_page.html'">
+        Change Password
+      </button>
+
+      <button type="button" class="secondary-button" onclick="window.location.href='home.html'">
+        Go Back to Dashboard
+      </button>
+    </form>
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    function loginSecurity(event) {
+      event.preventDefault();
+
+      const userId = document.getElementById('userId').value.trim();
+      const password = document.getElementById('password').value;
+      const messageBox = document.getElementById('message');
+      messageBox.textContent = '';
+
+      fetch('/api/admin/users/checklogin', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: userId,
+          passwordHash: password
+        })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Login failed");
+        return res.json();
+      })
+      .then(user => {
+        if (user.role !== 'SECURITY') {
+          messageBox.textContent = "Not authorized as security.";
+          return;
+        }
+
+        // Login successful
+        localStorage.setItem('securityId', user.userId);
+        window.location.href = 'security-dashboard.html';
+      })
+      .catch(err => {
+        messageBox.textContent = "Login failed: " + err.message;
+      });
+    }
+  </script>
+
+</body>
+</html>

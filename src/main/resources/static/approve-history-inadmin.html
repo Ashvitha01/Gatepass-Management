@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Approval History</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+    }
+
+    h2 {
+      text-align: center;
+      margin-top: 30px;
+      color: #333;
+    }
+
+    table {
+      width: 90%;
+      margin: 30px auto;
+      border-collapse: collapse;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 12px 15px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    .no-data {
+      text-align: center;
+      color: red;
+      font-size: 18px;
+      margin-top: 20px;
+    }
+
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 12px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Approval History</h2>
+
+  <table id="approvalHistoryTable">
+    <thead>
+      <tr>
+        <th>Approval ID</th>
+        <th>Request ID</th>
+        <th>Staff ID</th>
+        <th>Staff Name</th>
+        <th>Remarks</th>
+        <th>Status</th>
+        <th>Approved At</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <p class="no-data" id="noDataMsg" style="display: none;">No approval history found.</p>
+
+ >
+  <button onclick="goadmin()">back</button>
+  <script>
+   
+    function formatDateTime(datetimeStr) {
+      if (!datetimeStr) return "N/A";
+      const date = new Date(datetimeStr);
+      return date.toLocaleString();
+    }
+
+    async function loadApprovalHistory() {
+      try {
+        const response = await fetch("http://192.168.3.84:8080/api/staff/history");
+
+        if (!response.ok) {
+          throw new Error("Server responded with status " + response.status);
+        }
+
+        const data = await response.json();
+        const tableBody = document.querySelector("#approvalHistoryTable tbody");
+        const noDataMsg = document.getElementById("noDataMsg");
+
+        tableBody.innerHTML = "";
+
+        if (!Array.isArray(data) || data.length === 0) {
+          noDataMsg.style.display = "block";
+          return;
+        }
+
+        noDataMsg.style.display = "none";
+
+        data.forEach(item => {
+          const row = document.createElement("tr");
+
+          const approvalId = item.approvalId || "N/A";
+          const requestId = item.requestId || "N/A";
+          const staffUserId = item.staffId?.userId || "N/A";
+          const staffName = item.staffId?.name || "N/A";
+          const remarks = item.remarks || "N/A";
+          const status = item.status || "N/A";
+          const approvedAt = formatDateTime(item.approvedAt);
+
+          row.innerHTML = `
+            <td>${approvalId}</td>
+            <td>${requestId}</td>
+            <td>${staffUserId}</td>
+            <td>${staffName}</td>
+            <td>${remarks}</td>
+            <td>${status}</td>
+            <td>${approvedAt}</td>
+          `;
+
+          tableBody.appendChild(row);
+        });
+
+      } catch (error) {
+        console.error("Error loading approval history:", error);
+        alert("Error loading data: " + error.message);
+      }
+    }
+
+   
+
+	
+	function goadmin(){
+		window.location.href = " admin.html";
+	}
+    window.onload = loadApprovalHistory;
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View All Security Incidents</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Security Incidents Reported</h2>
+
+    <table id="incidentTable">
+        <thead>
+            <tr>
+                <th>Incident ID</th>
+                <th>Description</th>
+                <th>Reported At</th>
+                <th>Status</th>
+                <th>Security Guard ID</th>
+                <th>Student ID</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <button onclick="goBack()">Back</button>
+
+    <script>
+        async function loadSecurityIncidents() {
+            try {
+                const response = await fetch("http://192.168.3.84:8080/api/securityincident/getallincident"); // <-- Make sure this endpoint returns ALL incidents
+                const data = await response.json();
+
+                const tableBody = document.querySelector("#incidentTable tbody");
+                tableBody.innerHTML = "";
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    tableBody.innerHTML = "<tr><td colspan='6'>No incidents found.</td></tr>";
+                    return;
+                }
+
+                data.forEach(incident => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${incident.incidentId}</td>
+                        <td>${incident.description}</td>
+                        <td>${incident.reportedat || "N/A"}</td>
+                        <td>${incident.status}</td>
+                        <td>${incident.securityGuard?.userId || "N/A"}</td>
+                        <td>${incident.studentid?.userId || "N/A"}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error("Error loading incidents:", error);
+                alert("Failed to load security incidents.");
+            }
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        loadSecurityIncidents();
+    </script>
+
+</body>
+</html>

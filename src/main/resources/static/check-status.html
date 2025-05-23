@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Check Gate Pass Status</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #f7f8fc, #e0eafc);
+      padding: 40px;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #2c3e50;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      background-color: #f5f5f5;
+    }
+
+    input[readonly] {
+      background-color: #eaeaea;
+      color: #777;
+      cursor: not-allowed;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    #message {
+      color: red;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    th, td {
+      padding: 14px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f1f1f1;
+    }
+
+    #resultSection {
+      margin-top: 30px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+
+      th, td {
+        font-size: 14px;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Check Your Gate Pass Status</h2>
+
+    <label for="studentIdInput">Student ID:</label>
+    <input type="text" id="studentIdInput" readonly>
+
+    <button onclick="checkStatus()">Check Status</button>
+
+    <div class="mb-5">
+      <button id="backBtn" onclick="history.back()">Cancel</button>
+    </div>
+
+    <div id="resultSection" style="display:none;">
+      <h3>Gate Pass Requests</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Request ID</th>
+            <th>Reason</th>
+            <th>Entry Time</th>
+            <th>Exit Time</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="statusTableBody"></tbody>
+      </table>
+    </div>
+
+    <p id="message"></p>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const storedId = localStorage.getItem("studentId");
+      if (storedId) {
+        document.getElementById("studentIdInput").value = storedId;
+      } else {
+        alert("Student ID not found. Please log in again.");
+        window.location.href = "student-login.html";
+      }
+    });
+
+    function checkStatus() {
+      const studentId = localStorage.getItem("studentId");
+      if (!studentId) {
+        alert("Student ID not found in session.");
+        return;
+      }
+
+      fetch(`http://localhost:8080/api/gatepass/status/${studentId}`)
+        .then(res => {
+          if (!res.ok) {
+            throw new Error("No gate pass request found or server error.");
+          }
+          return res.json();
+        })
+        .then(data => {
+          const tbody = document.getElementById("statusTableBody");
+          tbody.innerHTML = "";
+
+          if (!data || data.length === 0) {
+            document.getElementById("message").innerText = "No gate pass request found.";
+            document.getElementById("resultSection").style.display = "none";
+            return;
+          }
+
+          data.forEach(request => {
+            const row = `<tr>
+              <td>${request.requestId}</td>
+              <td>${request.reason}</td>
+              <td>${request.entrytime?.replace("T", " ") || ''}</td>
+              <td>${request.exittime?.replace("T", " ") || ''}</td>
+              <td>${request.status}</td>
+			   </tr>`;
+            tbody.innerHTML += row;
+          });
+
+          document.getElementById("resultSection").style.display = "block";
+          document.getElementById("message").innerText = "";
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById("message").innerText = "Error: " + err.message;
+          document.getElementById("resultSection").style.display = "none";
+        });
+    }
+  </script>
+</body>
+</html>

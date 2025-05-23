@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Find User by ID</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+    .result-box {
+      background-color: #e7f3ff;
+      border-left: 5px solid #0d6efd;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+    .error-box {
+      background-color: #ffe5e5;
+      border-left: 5px solid #dc3545;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h4 class="text-center mb-4">🔍 Find User by ID</h4>
+
+    <div class="mb-3">
+      <input type="text" id="userIdInput" class="form-control" placeholder="Enter User ID (e.g. STD202542)">
+    </div>
+
+    <div class="d-grid mb-3">
+      <button onclick="findUser()" class="btn btn-primary">Search</button>
+    </div>
+	<div class="d-grid mb-4">
+		      	<button id="backBtn" class="btn btn-primary" onclick="history.back()">Go Back</button>
+		       </div>
+    <div id="userResult" class="result-box" style="display: none;"></div>
+    <div id="notFound" class="error-box text-danger fw-semibold" style="display: none;">❌ User not found.</div>
+  </div>
+
+  <script>
+    function findUser() {
+      const userId = document.getElementById("userIdInput").value.trim();
+      const resultDiv = document.getElementById("userResult");
+      const notFoundDiv = document.getElementById("notFound");
+
+      // Reset
+      resultDiv.style.display = 'none';
+      notFoundDiv.style.display = 'none';
+      resultDiv.innerHTML = '';
+
+      if (!userId) {
+        alert("Please enter a User ID.");
+        return;
+      }
+
+      fetch(`/api/admin/users/getbyid/${userId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("User not found");
+          }
+          return response.json();
+        })
+        .then(user => {
+          resultDiv.innerHTML = `
+            <p><strong>User ID:</strong> ${user.userId}</p>
+            <p><strong>Name:</strong> ${user.name}</p>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Role:</strong> ${user.role}</p>
+            <p><strong>Contact Number:</strong> ${user.contactNumber}</p>
+          `;
+          resultDiv.style.display = 'block';
+        })
+        .catch(error => {
+          notFoundDiv.style.display = 'block';
+          console.error("Error fetching user:", error);
+        });
+    }
+  </script>
+
+</body>
+</html>

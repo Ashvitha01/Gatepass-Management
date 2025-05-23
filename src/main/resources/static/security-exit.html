@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Validate Exit</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fefce8;
+      padding: 40px;
+      text-align: center;
+    }
+
+    input, button {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #f59e0b;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #d97706;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Validate Student Exit</h2>
+
+  <input type="text" id="studentId" placeholder="Enter Student ID" /><br />
+  <input type="text" id="securityGuardId" placeholder="Enter Security Guard ID" /><br />
+  <button onclick="validateExit()">OK</button>
+  <div class=""mb-5">
+   	  			<br> 
+   	  			<button id="backBtn" class="btn btn-primary" onclick="history.back()">Go Back</button>
+   	  			</div>
+  <script>
+	function validateExit() {
+	  const studentId = document.getElementById("studentId").value;
+	  const securityGuardId = document.getElementById("securityGuardId").value;
+
+	  fetch(`http://192.168.3.84:8080/api/securityvalidate/validate-exit?studentId=${studentId}&securityGuardId=${securityGuardId}`, {
+	    method: 'POST'
+	  })
+	  .then(res => {
+	    if (!res.ok) {
+	      return res.text().then(err => { throw new Error(err); });
+	    }
+	    return res.json();
+	  })
+	  .then(data => {
+	    // Expecting the backend to return something like: { status: "COMPLETED", message: "Exit recorded successfully." }
+	    alert("✅ Exit Validated Successfully!\nStatus: " + data.status + "\nMessage: " + (data.message || "Success"));
+	  })
+	  .catch(err => {
+	    let message = "An unexpected error occurred.";
+
+	    try {
+	      const errorObj = JSON.parse(err.message);
+	      if (errorObj.message) {
+	        message = errorObj.message;
+	      } else if (errorObj.error) {
+	        message = errorObj.error;
+	      } else if (errorObj.trace) {
+	        const match = errorObj.trace.match(/Exception:\s*(.*?)\\n/);
+	        if (match && match[1]) {
+	          message = match[1];
+	        }
+	      }
+	    } catch (e) {
+	      message = err.message; // fallback if not JSON
+	    }
+
+	    alert("❌ Exit Validation Failed:\n" + message);
+	  });
+	}
+
+  </script>
+</body>
+</html>

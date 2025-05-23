@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generate Reports</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f9fafb;
+            padding: 40px;
+        }
+
+        h2 {
+            color: #1f2937;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+
+        input, select, button {
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+        }
+
+        button {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #1d4ed8;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Generate Gate Pass Report</h2>
+    <div class="section">
+        <div class="form-group">
+            <label>Start Date:</label>
+            <input type="date" id="startDate">
+        </div>
+        <div class="form-group">
+            <label>End Date:</label>
+            <input type="date" id="endDate">
+        </div>
+        <div class="form-group">
+            <label>Exit Reason:</label>
+            <input type="text" id="exitReason" placeholder="Optional">
+        </div>
+        <div class="form-group">
+            <label>Format:</label>
+            <select id="gatepassFormat">
+                <option value="pdf">PDF</option>
+                <option value="csv">CSV</option>
+            </select>
+        </div>
+        <button onclick="generateGatePassReport()">Download Gate Pass Report</button>
+    </div>
+
+    <h2>Generate Security Incident Report</h2>
+    <div class="section">
+        <div class="form-group">
+            <label>Format:</label>
+            <select id="incidentFormat">
+                <option value="pdf">PDF</option>
+                <option value="csv">CSV</option>
+            </select>
+        </div>
+        <button onclick="generateSecurityIncidentReport()">Download Incident Report</button>
+    </div>
+
+    <h2>Top Exit Students Report</h2>
+    <div class="section">
+        <div class="form-group">
+            <label>Format:</label>
+            <select id="studentExitFormat">
+                <option value="pdf">PDF</option>
+                <option value="csv">CSV</option>
+            </select>
+        </div>
+        <button onclick="downloadStudentExitReport()">Download Student Exit Report</button>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://192.168.3.84:8080/api/admin'; // Change if different
+
+        function generateGatePassReport() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const exitReason = document.getElementById('exitReason').value;
+            const format = document.getElementById('gatepassFormat').value;
+
+            let url = `${BASE_URL}/gatepass-usage?format=${format}`;
+            if (startDate) url += `&startDate=${startDate}`;
+            if (endDate) url += `&endDate=${endDate}`;
+            if (exitReason) url += `&exitReason=${exitReason}`;
+
+            window.open(url, '_blank');
+        }
+
+        function generateSecurityIncidentReport() {
+            const format = document.getElementById('incidentFormat').value;
+            const url = `${BASE_URL}/securityincidentreport?format=${format}`;
+            window.open(url, '_blank');
+        }
+
+        function downloadStudentExitReport() {
+            const format = document.getElementById('studentExitFormat').value;
+            const url = `${BASE_URL}/export-student-exit-report?format=${format}`;
+            window.open(url, '_blank');
+        }
+    </script>
+
+
+	<button id="backBtn" onclick="history.back()">🔙 Back</button>
+</body>
+</html>

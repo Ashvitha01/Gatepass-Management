@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Security Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h2 {
+      color: #1f2937;
+      margin-bottom: 30px;
+    }
+
+    .btn-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 250px;
+    }
+
+    button:hover {
+      background-color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Security Dashboard</h2>
+
+  <div class="btn-container">
+    <button onclick="window.location.href='security-validation.html'">Security Validation</button>
+    <button onclick="window.location.href='security_incident_dashboard.html'">Security Incident</button>
+    <button onclick="window.location.href='approve-emergency.html'">Approve Emergency</button>
+	<div class=""mb-5">
+	  			<br> 
+	  			<button id="backBtn" class="btn btn-primary" onclick="history.back()">Go Back</button>
+	  			</div>
+
+  </div>
+
+</body>
+</html>

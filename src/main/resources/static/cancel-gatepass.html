@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cancel Gate Pass</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #74ebd5, #9face6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      width: 350px;
+      text-align: center;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    h2 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #444;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #aaa;
+      border-radius: 5px;
+      font-size: 14px;
+      background-color: #f0f0f0;
+    }
+
+    input[readonly] {
+      cursor: not-allowed;
+    }
+
+    button {
+      width: 100%;
+      background-color: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #e60000;
+    }
+
+    .back-btn {
+      background-color: #3498db;
+      margin-top: 10px;
+    }
+
+    .back-btn:hover {
+      background-color: #2980b9;
+    }
+
+    #resultMessage {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Cancel Gate Pass</h2>
+    <form id="cancelForm">
+      <label for="studentId">Student ID</label>
+      <input type="text" id="studentId" name="studentId" placeholder="STD202544" readonly required>
+      <button type="submit">Cancel Request</button>
+    </form>
+    <button class="back-btn" onclick="history.back()">Go Back</button>
+    <p id="resultMessage"></p>
+  </div>
+
+  <script>
+    document.getElementById("cancelForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const studentId = document.getElementById("studentId").value.trim();
+
+      fetch(`http://192.168.3.84:8080/api/gatepass/cancelforentry/${studentId}`, {
+        method: "DELETE"
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(err => { throw new Error(err); });
+        }
+        return response.text();
+      })
+      .then(data => {
+        alert(data);
+        window.location.href = "student-dashboard.html";
+      })
+      .catch(error => {
+        const message = document.getElementById("resultMessage");
+        message.innerText = "Error: " + error.message;
+        message.className = "error";
+      });
+    });
+
+    // Auto-fill from localStorage
+    window.onload = function () {
+      const savedId = localStorage.getItem("studentId");
+      if (savedId) {
+        document.getElementById("studentId").value = savedId;
+      } else {
+        alert("Please login first.");
+        window.location.href = "student-login.html";
+      }
+    };
+  </script>
+</body>
+</html>

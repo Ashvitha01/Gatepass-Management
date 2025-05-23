@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Approve Emergency Gate Pass</title>
+	<style>
+		body {
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			background-color: #f3f4f6;
+			padding: 50px;
+			text-align: center;
+		}
+
+		h2 {
+			color: #111827;
+			margin-bottom: 30px;
+			font-size: 28px;
+		}
+
+		.form-container {
+			background-color: white;
+			padding: 30px;
+			border-radius: 12px;
+			box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+			max-width: 420px;
+			margin: auto;
+			display: flex;
+			flex-direction: column;
+			gap: 18px;
+		}
+
+		input,
+		textarea {
+			padding: 12px 15px;
+			font-size: 16px;
+			border: 1px solid #d1d5db;
+			border-radius: 8px;
+			outline: none;
+			transition: border 0.3s;
+		}
+
+		input:focus,
+		textarea:focus {
+			border-color: #3b82f6;
+		}
+
+		button {
+			padding: 12px;
+			font-size: 16px;
+			background-color: #10b981;
+			color: white;
+			border: none;
+			border-radius: 8px;
+			cursor: pointer;
+			transition: background-color 0.3s;
+		}
+
+		button:hover {
+			background-color: #059669;
+		}
+
+		.message {
+			margin-top: 15px;
+			font-weight: 500;
+			padding: 10px;
+			border-radius: 6px;
+			display: none;
+		}
+
+		.success {
+			color: #065f46;
+			background-color: #d1fae5;
+			border: 1px solid #10b981;
+		}
+
+		.error {
+			color: #b91c1c;
+			background-color: #fee2e2;
+			border: 1px solid #ef4444;
+		}
+	</style>
+</head>
+
+<body>
+
+	<h2>🚨 Approve Emergency Gate Pass</h2>
+
+	<div class="form-container">
+		<input type="text" id="securityId" placeholder="🔐 Enter Security ID" required />
+		<input type="text" id="studentId" placeholder="🎓 Enter Student ID" required />
+		<textarea id="remarks" rows="3" placeholder="📝 Remarks (optional)"></textarea>
+		<button onclick="approveEmergency()">✅ Approve Emergency</button>
+		<div class="" mb-5">
+			<br>
+			<button id="backBtn" class="btn btn-primary" onclick="history.back()">Go Back</button>
+		</div>
+		<div class="message" id="responseMessage"></div>
+	</div>
+
+	<script>
+		async function approveEmergency() {
+			const securityId = document.getElementById('securityId').value.trim();
+			const studentId = document.getElementById('studentId').value.trim();
+			const remarks = document.getElementById('remarks').value.trim();
+			const responseMessage = document.getElementById('responseMessage');
+
+			if (!securityId || !studentId) {
+				responseMessage.style.display = 'block';
+				responseMessage.className = 'message error';
+				responseMessage.textContent = '❌ Please enter both Security ID and Student ID.';
+				return;
+			}
+
+			const payload = {
+				userId: studentId
+			};
+
+			try {
+				const response = await fetch(`http://192.168.3.84:8080/api/security/approve-emergency/${securityId}/${encodeURIComponent(remarks || '')}`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(payload)
+				});
+
+				if (!response.ok) {
+					const errorText = await response.text();
+					throw new Error(errorText || 'Failed to approve emergency request.');
+				}
+
+				const result = await response.json();
+				responseMessage.style.display = 'block';
+				responseMessage.className = 'message success';
+				responseMessage.textContent = '✅ Emergency approved! QR code sent successfully.';
+				console.log('Approval Response:', result);
+			} catch (error) {
+				responseMessage.style.display = 'block';
+				responseMessage.className = 'message error';
+				responseMessage.textContent = '❌ Error: ' + error.message;
+				console.error('Error approving emergency:', error);
+			}
+		}
+	</script>
+
+</body>
+
+</html>

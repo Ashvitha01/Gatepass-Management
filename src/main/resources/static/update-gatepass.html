@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Update Gate Pass</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to right, #e3f2fd, #ffffff);
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .form-card {
+      background-color: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+    .form-card h2 {
+      margin-bottom: 25px;
+      color: #0d6efd;
+    }
+    .btn-primary, .btn-secondary {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<div class="form-card">
+  <h2 class="text-center">Update Gate Pass</h2>
+
+  <form id="fetchForm" class="mb-4">
+    <div class="mb-3">
+      <label for="studentIdInput" class="form-label">Student ID</label>
+      <input type="text" id="studentIdInput" class="form-control" readonly>
+    </div>
+    <button type="button" class="btn btn-primary mb-3" onclick="fetchGatePass()">Fetch Latest Pending Request</button>
+    <button type="button" class="btn btn-secondary mt-3" onclick="history.back()">Cancel</button>
+  </form>
+
+  <form id="updateForm" style="display: none;" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label for="reason" class="form-label">Reason</label>
+      <input type="text" id="reason" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="entrytime" class="form-label">Entry Time</label>
+      <input type="datetime-local" id="entrytime" class="form-control">
+    </div>
+
+    <div class="mb-3">
+      <label for="file" class="form-label">Upload Document (optional)</label>
+      <input type="file" id="file" class="form-control">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update Gate Pass</button>
+    <button type="button" class="btn btn-secondary mt-3" onclick="history.back()">Cancel</button>
+  </form>
+
+  <div id="message" class="text-danger mt-3"></div>
+  <div id="successMessage" class="text-success mt-3"></div>
+</div>
+
+<script>
+  let currentRequest = null;
+
+  const studentId = localStorage.getItem('studentId');
+  if (studentId) {
+    document.getElementById('studentIdInput').value = studentId;
+  } else {
+    alert("Student ID not found. Please log in again.");
+    window.location.href = "student-login.html";
+  }
+
+  function fetchGatePass() {
+    document.getElementById("message").innerText = '';
+    document.getElementById("successMessage").innerText = '';
+    document.getElementById("updateForm").style.display = "none";
+
+    fetch(`http://192.168.3.84:8080/api/gatepass/status/${studentId}`)
+      .then(response => {
+        if (!response.ok) throw new Error("No request found or server error.");
+        return response.json();
+      })
+      .then(dataList => {
+        if (!Array.isArray(dataList) || dataList.length === 0) {
+          throw new Error("No gate pass request found.");
+        }
+
+        const pendingRequest = dataList.find(item =>
+          ["PENDING", "RESUBMITTED", "SUBMITTED"].includes(item.status)
+        );
+
+        if (!pendingRequest) {
+          throw new Error("No pending request found to update.");
+        }
+
+        currentRequest = pendingRequest;
+
+        document.getElementById("reason").value = pendingRequest.reason || '';
+        document.getElementById("entrytime").value = pendingRequest.entrytime || '';
+        document.getElementById("updateForm").style.display = "block";
+      })
+      .catch(error => {
+        document.getElementById("message").innerText = error.message;
+      });
+  }
+
+  document.getElementById("updateForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    if (!currentRequest) return;
+
+    const updatedRequest = {
+      requestId: currentRequest.requestId,
+      studentid: { userId: studentId },
+      reason: document.getElementById("reason").value,
+      entrytime: document.getElementById("entrytime").value || null
+    };
+
+    const formData = new FormData();
+    formData.append("request", new Blob([JSON.stringify(updatedRequest)], { type: "application/json" }));
+
+    const fileInput = document.getElementById("file");
+    if (fileInput.files.length > 0) {
+      formData.append("file", fileInput.files[0]);
+    }
+
+    fetch("http://192.168.3.84:8080/api/gatepass/updateforentry", {
+      method: "PUT",
+      body: formData
+    })
+      .then(response => {
+        if (!response.ok) throw new Error("Update failed. Please try again.");
+        return response.json();
+      })
+      .then(() => {
+        document.getElementById("successMessage").innerText = "Gate Pass updated successfully!";
+        document.getElementById("message").innerText = '';
+        setTimeout(() => {
+          history.back();
+        }, 2000);
+      })
+      .catch(error => {
+        document.getElementById("message").innerText = error.message;
+        document.getElementById("successMessage").innerText = '';
+      });
+  });
+</script>
+</body>
+</html>

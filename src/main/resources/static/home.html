@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Home - Gate Pass System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap 5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .container-box {
+      background-color: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 500px;
+      width: 100%;
+    }
+    .btn-custom {
+      margin: 10px 0;
+      width: 100%;
+    }
+    h2 {
+      margin-bottom: 30px;
+      font-weight: bold;
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container-box">
+  <h2>Welcome to Gate Pass System</h2>
+  <button class="btn btn-danger btn-custom" onclick="showAdminOptions()">Admin</button>
+  <button class="btn btn-primary btn-custom" onclick="window.location.href='staff-login.html'">Staff</button>
+  <button class="btn btn-success btn-custom" onclick="window.location.href='student-login.html'">Student</button>
+  <button class="btn btn-secondary btn-custom" onclick="window.location.href='security-login.html'">Security</button>
+</div>
+
+<!-- Bootstrap Modal -->
+<div class="modal fade" id="adminModal" tabindex="-1" aria-labelledby="adminModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content p-3">
+      <div class="modal-header">
+        <h5 class="modal-title" id="adminModalLabel">Admin Access</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+		<button class="btn btn-outline-success w-100" onclick="window.location.href='admin-login.html'">Login</button>
+        <button class="btn btn-outline-primary mb-2 w-100" onclick="adminSignup()">Signup</button>
+     
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function showAdminOptions() {
+    const modal = new bootstrap.Modal(document.getElementById('adminModal'));
+    modal.show();
+  }
+
+ /* function adminSignup() {
+    const username = prompt("Choose a username:");
+    const password = prompt("Choose a password:");
+
+    if (username && password) {
+      sessionStorage.setItem("tempAdminUsername", username);
+      sessionStorage.setItem("tempAdminPassword", password);
+      alert("Signup successful (for this session only). Now login to continue.");
+    } else {
+      alert("Both fields are required.");
+    }
+  }*/
+  
+ 
+
+    function adminSignup() {
+      const username = prompt("Enter admin username:");
+      const password = prompt("Enter admin password:");
+
+      const validUsername = "admin";
+      const validPassword = "admin123";
+
+      if (username === validUsername && password === validPassword) {
+        window.location.href = "admin.html";
+      } else {
+        alert("Invalid credentials. Access denied.");
+      }
+    }
+
+/*  function adminLogin() {
+    const username = prompt("Enter admin username:");
+    const password = prompt("Enter admin password:");
+
+    // First, check session storage (temporary signup)
+    const tempUser = sessionStorage.getItem("tempAdminUsername");
+    const tempPass = sessionStorage.getItem("tempAdminPassword");
+
+    if (username === tempUser && password === tempPass) {
+      alert("Logged in with session-based account.");
+      window.location.href = "admin.html";
+      return;
+    }
+
+    // Else, check from DB (real login)
+    fetch("http://192.168.3.84:8080/api/admin/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ username, password })
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("Invalid credentials");
+      return res.json();
+    })
+    .then(data => {
+      alert("Logged in successfully.");
+      window.location.href = "admin.html";
+    })
+    .catch(err => {
+      alert("Login failed: " + err.message);
+    });
+  }*/
+  
+  
+</script>
+
+</body>
+</html>

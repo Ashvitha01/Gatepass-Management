@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create Gate Pass for Entry</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to right, #e3f2fd, #ffffff);
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .form-card {
+      background-color: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+    .form-card h2 {
+      margin-bottom: 25px;
+      color: #0d6efd;
+    }
+    .btn-primary, .btn-secondary {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-card">
+    <h2 class="text-center">Create Gate Pass</h2>
+    <form id="gatepassForm">
+      <div class="mb-3">
+        <label for="studentId" class="form-label">Student ID</label>
+        <input type="text" id="studentId" class="form-control" readonly>
+      </div>
+
+      <div class="mb-3">
+        <label for="reason" class="form-label">Reason</label>
+        <input type="text" id="reason" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" id="email" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="eventId" class="form-label">Event ID (optional)</label>
+        <input type="text" id="eventId" class="form-control">
+      </div>
+
+      <div class="mb-3">
+        <label for="date" class="form-label">Date</label>
+        <input type="date" id="date" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="exittime" class="form-label">Exit Time</label>
+        <input type="datetime-local" id="exittime" class="form-control">
+      </div>
+
+	  <div class="mb-3">
+	    <label for="file" class="form-label">Upload Document (optional)</label>
+	    <input type="file" id="file" class="form-control">
+	  </div>
+
+      <button type="submit" class="btn btn-primary">Submit Request</button>
+
+      <div class="mt-4">
+        <button id="backBtn" type="button" class="btn btn-secondary" onclick="history.back()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Auto-fill student ID from localStorage
+    const studentId = localStorage.getItem('studentId');
+    if (studentId) {
+      document.getElementById('studentId').value = studentId;
+    } else {
+      alert("Student ID not found. Please log in again.");
+      window.location.href = "student-login.html";
+    }
+
+    document.getElementById("gatepassForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const gatepassRequest = {
+        studentid: { userId: studentId },
+        reason: document.getElementById("reason").value,
+        email: document.getElementById("email").value,
+        date: document.getElementById("date").value
+      };
+
+      // Add optional fields only if they have a value
+      const eventId = document.getElementById("eventId").value;
+      const exittime = document.getElementById("exittime").value;
+     
+
+      if (eventId) gatepassRequest.eventId = eventId;
+      if (exittime) gatepassRequest.exittime = exittime;
+	  const formData = new FormData();
+	     formData.append("exitrequest", new Blob([JSON.stringify(gatepassRequest)], { type: "application/json" }));
+
+	     const fileInput = document.getElementById("file");
+	     if (fileInput.files.length > 0) {
+	       formData.append("file", fileInput.files[0]);
+	     }
+
+      fetch("http://192.168.3.84:8080/api/gatepass/submitforexit", {
+        method: "POST",
+		body: formData
+		   })
+		   .then(response => {
+		        if (!response.ok) {
+		          return response.text().then(msg => { throw new Error(msg); });
+		        }
+		        return response.json();
+		      })
+      .then(() => {
+        alert("Gate Pass Request Submitted Successfully!");
+        window.location.href = "student-dashboard.html";
+      })
+	  .catch(async (error) => {
+	       let errorMessage = "An unexpected error occurred.";
+	       try {
+	         const parsed = JSON.parse(error.message);
+	         errorMessage = parsed.message || parsed.error || error.message;
+	       } catch {
+	         errorMessage = error.message;
+	       }
+	       alert("Error submitting gate pass: " + errorMessage);
+	     });
+	   });
+  </script>
+
+</body>
+</html>

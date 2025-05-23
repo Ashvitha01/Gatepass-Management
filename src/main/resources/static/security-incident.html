@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Security Incidents</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      color: #1e293b;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      background-color: #1e293b;
+      color: white;
+    }
+    button {
+      background-color: #3b82f6;
+      color: white;
+      padding: 6px 10px;
+	  width: 100%;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background-color: #2563eb;
+    }
+    .resolved {
+      color: green;
+      font-weight: 600;
+    }
+    .pending {
+      color: orange;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Security Incident Records</h2>
+
+<table id="incidentTable">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Student ID</th>
+      <th>Description</th>
+      <th>Status</th>
+      <th>Reported At</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Incident rows will be injected here -->
+  </tbody>
+</table>
+<div style="text-align: center; margin-top: 30px;">
+  <button onclick="goBack()" style="width: auto; padding: 10px 20px;">Back</button>
+</div>
+<script>
+  function fetchIncidents() {
+    fetch("http://localhost:8080/api/securityincident/getallincident")
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.querySelector("#incidentTable tbody");
+        tbody.innerHTML = "";
+
+        data.forEach(incident => {
+          const tr = document.createElement("tr");
+
+          tr.innerHTML = `
+            <td>${incident.incidentId}</td>
+            <td>${incident.studentId || 'N/A'}</td>
+            <td>${incident.description}</td>
+            <td>${incident.status}</td>
+            <td>${new Date(incident.reportedAt).toLocaleString()}</td>
+            <td>
+              ${incident.status === 'RESOLVED' ? 
+                '<span class="resolved">Resolved</span>' :
+                '<span class="pending">Pending Resolve</span>'
+              }
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(err => {
+        console.error("Failed to load incidents", err);
+      });
+  }
+
+  function goBack() {
+    window.history.back();
+  }
+
+  // Initial fetch on page load
+  fetchIncidents();
+</script>
+
+</body>
+</html>

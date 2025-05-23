@@ -1,0 +1,378 @@
+user entity 
+
+
+
+//package in.oasys.gatepass.entity;
+//
+//import jakarta.persistence.*;
+//import lombok.Data;
+//
+//import java.time.LocalDateTime;
+//
+//@Data
+//@Entity
+//@Table(
+//    name = "users",
+//    uniqueConstraints = @UniqueConstraint(columnNames = "email")
+//)
+//public class User {
+//
+//    @Id
+//    @Column(name = "user_id", length = 50, nullable = false, unique = true)
+//    private String userId;
+//
+//    @Column(name = "contact_number", length = 15, nullable = false)
+//    private String contactNumber;
+//
+//    @Column(name = "created_at", nullable = false, columnDefinition = "datetime(6)")
+//    private LocalDateTime createdAt;
+//
+//    @Column(name = "email", length = 100, nullable = false, unique = true)
+//    private String email;
+//
+//    @Column(name = "name", length = 100, nullable = false)
+//    private String name;
+//
+//    @Column(name = "password_hash", length = 255, nullable = false)
+//    private String passwordHash;
+//
+//    @Enumerated(EnumType.STRING)
+//    @Column(name = "role", nullable = false)
+//    private Role role;
+//
+//    @PrePersist
+//    protected void onCreate() {
+//        this.createdAt = LocalDateTime.now();
+//    }
+//
+//    public enum Role {
+//        ADMIN, SECURITY, STAFF, STUDENT
+//    }
+//}
+
+
+Approval
+
+package in.oasys.gatepass.entity;
+
+import jakarta.persistence.*;
+
+import lombok.Data;
+import lombok.ToString;
+
+import java.time.LocalDateTime;
+
+
+@Data
+@Entity
+@Table(name = "approvals")
+
+//@Setter
+//@Getter
+public class Approval {
+
+	@Id
+	@Column(name = "approval_id", length = 50)
+	private String approvalId;
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "staffId", nullable = false)//, foreignKey = @ForeignKey(name = "fk_student_user", foreignKeyDefinition = "FOREIGN KEY (staffId) REFERENCES users(user_id) ON DELETE CASCADE"))
+	@ToString.Exclude
+	private User staffId;
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "requestId", nullable = false)//, foreignKey = @ForeignKey(name = "fk_student_user", foreignKeyDefinition = "FOREIGN KEY (requestId) REFERENCES users(requestId) ON DELETE CASCADE"))
+	@ToString.Exclude
+	private GatePassRequestEntity requestId;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private Status status;
+
+	@Column(columnDefinition = "TEXT")
+	private String remarks;
+
+	@Column(name = "approved_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+	private LocalDateTime approvedAt = LocalDateTime.now();
+
+	public enum Status {
+		APPROVED, REJECTED
+	}
+
+}
+
+
+Blacklisted student
+
+package in.oasys.gatepass.entity;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import lombok.Data;
+import lombok.ToString;
+import jakarta.persistence.Id;
+@Data
+@Entity
+public class BlacklistedStudents {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer Id;
+	private String Reason;
+
+	@Enumerated(EnumType.STRING)
+	private Status status = Status.BLACKLISTED;
+
+	public enum Status {
+		BLACKLISTED, UNBLACKLISTED
+	}
+
+	private LocalDateTime Blacklistedat;
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "studentid", nullable = false)//, foreignKey = @ForeignKey(name = "fk_student_user", foreignKeyDefinition = "FOREIGN KEY (studentid) REFERENCES users(user_id) ON DELETE CASCADE"))
+	@ToString.Exclude
+	private User studentid;
+
+
+}
+
+
+Gatepassrequestentity
+
+package in.oasys.gatepass.entity;
+
+import java.sql.Date;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.ToString;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.ForeignKey;
+@Data
+@Entity
+@Table(name = "gatepass_request_table")
+public class GatePassRequestEntity {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer requestId;
+
+	public Integer getRequestId() {
+		return requestId;
+	}
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "studentid", nullable = false)  //, foreignKey = @ForeignKey(name = "fk_student_user", foreignKeyDefinition = "FOREIGN KEY (studentid) REFERENCES users(user_id) ON DELETE CASCADE"))
+	@ToString.Exclude
+	private User studentid;
+
+//	// requestid foreign key mapped in approval
+	@OneToMany(mappedBy = "requestId", cascade = CascadeType.ALL, orphanRemoval = true)
+	@ToString.Exclude
+	private List<Approval> approval;
+//
+//	// requestid foreign key mapped in securityvalidation
+	@OneToMany(mappedBy = "requestId", cascade = CascadeType.ALL, orphanRemoval = true)
+	@ToString.Exclude
+	private List<SecurityValidation> securityvalidation;
+
+	private String reason;
+	private String email;
+	private String eventId;
+	private Date date;
+	@Column(nullable = true)
+	private LocalDateTime entrytime;
+	@Column(nullable = true)
+	private LocalDateTime exittime;
+	private String qrcode;
+	private String documentPath;
+	private LocalDateTime createdAt = LocalDateTime.now();
+
+	@Enumerated(EnumType.STRING)
+	private Status status = Status.PENDING;
+
+	public enum Status {
+		PENDING, APPROVED, REJECTED, VALIDATED, CANCELLED, COMPLETED, EMMERGENCYAPPROVED, EXPIRED, INVALID
+	}
+
+	@Enumerated(EnumType.STRING)
+	private Gatepasstype type;
+
+	public enum Gatepasstype {
+	    ENTRY, EXIT
+	}
+  
+	
+	
+//	@PrePersist
+//	public void validateTimes() {
+//		if (exittime.isBefore(entrytime)) {
+//			throw new IllegalArgumentException("Exit time must be greater than entry time.");
+//		}
+//	}
+
+
+}
+
+
+Notification entity
+
+package in.oasys.gatepass.entity;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import lombok.Data;
+import lombok.ToString;
+@Data
+@Entity
+public class NotificationEntity {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer notification_id;
+
+	private String message;
+
+	private LocalDateTime sent_at;
+	@Enumerated(EnumType.STRING)
+	private Status status = Status.PENDING;
+
+	public enum Status {
+
+		SENT, PENDING
+	}
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "userid", nullable = false)//, foreignKey = @ForeignKey(name = "fk_notification_user", foreignKeyDefinition = "FOREIGN KEY (userid) REFERENCES users(user_id) ON DELETE CASCADE"))
+	@ToString.Exclude
+	private User userid;
+
+
+}
+
+Security incident
+
+package in.oasys.gatepass.entity;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import lombok.Data;
+import lombok.ToString;
+@Data
+@Entity
+public class SecurityIncident {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer IncidentId;
+
+	private String description;
+
+	private LocalDateTime reportedat;
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "studentid", nullable = false)//, foreignKey = @ForeignKey(name = "fk_student_user", foreignKeyDefinition = "FOREIGN KEY (studentid) REFERENCES users(user_id) ON DELETE CASCADE"))
+	@ToString.Exclude
+	private User studentid;
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "securityGuard", nullable = false)//, foreignKey = @ForeignKey(name = "fk_student_user", foreignKeyDefinition = "FOREIGN KEY (securityGuard) REFERENCES users(user_id) ON DELETE CASCADE"))
+	@ToString.Exclude
+	private User securityGuard;
+
+	@Enumerated(EnumType.STRING)
+	private Status status = Status.PENDING;
+
+	public enum Status {
+		PENDING, RESOLVED
+	}
+
+
+
+}
+
+Security validation
+
+package in.oasys.gatepass.entity;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import lombok.Data;
+import lombok.ToString;
+@Data
+@Entity
+public class SecurityValidation {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer Validationid;
+	private LocalDateTime EntryTime;
+	private LocalDateTime ExitTime;
+	private LocalDateTime createdon = LocalDateTime.now();
+	@Enumerated(EnumType.STRING)
+	private Status status = Status.APPROVED;
+
+	public enum Status { // Corrected enum name
+		ENTRY, EXIT, APPROVED, VALIDATED, COMPLETED, EXPIRED, INVALID
+	}
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "requestId", nullable = false)//, foreignKey = @ForeignKey(name = "fk_student_user", foreignKeyDefinition = "FOREIGN KEY (requestId) REFERENCES users(requestId) ON DELETE CASCADE"))
+	@ToString.Exclude
+	private GatePassRequestEntity requestId;
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "securityGuard", nullable = false)//, foreignKey = @ForeignKey(name = "fk_student_user", foreignKeyDefinition = "FOREIGN KEY (securityGuard) REFERENCES users(user_id) ON DELETE CASCADE"))
+	@ToString.Exclude
+	private User securityGuard;
+
+
+
+}

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pending Gatepass Requests</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(120deg, #f6f9fc, #e9f5ee);
+            margin: 0;
+            padding: 40px;
+            color: #333;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 40px;
+            color: #2e7d32;
+        }
+
+        table {
+            width: 90%;
+            margin: auto;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        thead {
+            background: #43a047;
+            color: #fff;
+        }
+
+        th, td {
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: #f1f8f4;
+        }
+
+        td {
+            color: #444;
+        }
+
+        #backBtn {
+            display: block;
+            margin: 40px auto 0;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            background-color: #43a047;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        #backBtn:hover {
+            background-color: #388e3c;
+            transform: scale(1.05);
+        }
+
+        .no-data {
+            text-align: center;
+            font-size: 18px;
+            color: #888;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            table, th, td {
+                font-size: 13px;
+                padding: 10px;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+
+            #backBtn {
+                padding: 12px 24px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h2>📋 Pending Gatepass Requests</h2>
+
+    <table id="pendingTable">
+        <thead>
+            <tr>
+                <th>🎓 Student ID</th>
+                <th>📝 Purpose</th>
+                <th>🕓 Entry Time</th>
+                <th>🕘 Exit Time</th>
+                <th>🔖 Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be injected here -->
+        </tbody>
+    </table>
+
+    <p id="noDataMessage" class="no-data" style="display: none;">🚫 No pending requests found.</p>
+
+    <button id="backBtn" onclick="history.back()">🔙 Go Back</button>
+
+    <script>
+        fetch("http://localhost:8080/api/staff/pending")
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.querySelector("#pendingTable tbody");
+                const noDataMessage = document.getElementById("noDataMessage");
+
+                if (data.length === 0) {
+                    noDataMessage.style.display = "block";
+                    return;
+                }
+
+                data.forEach(request => {
+                    const row = document.createElement("tr");
+
+                    const studentId = request.studentid?.userId || 'N/A';
+                    const purpose = request.reason || 'N/A';
+                    const enterDate = request.entrytime ? request.entrytime.replace("T", " ") : 'N/A';
+                    const exitDate = request.exittime ? request.exittime.replace("T", " ") : 'N/A';
+                    const status = request.status || 'N/A';
+
+                    row.innerHTML = `
+                        <td>${studentId}</td>
+                        <td>${purpose}</td>
+                        <td>${enterDate}</td>
+                        <td>${exitDate}</td>
+                        <td>${status}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching pending requests:", error);
+                const noDataMessage = document.getElementById("noDataMessage");
+                noDataMessage.innerText = "⚠️ Failed to fetch requests.";
+                noDataMessage.style.display = "block";
+            });
+    </script>
+</body>
+</html>

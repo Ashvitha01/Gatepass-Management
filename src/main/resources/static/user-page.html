@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Management</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">User Management</h2>
+
+    <!-- Button Row -->
+    <div class="mb-3 d-flex gap-2">
+        <button class="btn btn-primary" onclick="window.location.href='/create-user.html'">Create New User</button>
+        <button class="btn btn-info" onclick="window.location.href='/find-user.html'">Find User</button>
+        <button class="btn btn-outline-secondary" onclick="window.location.href='/admin.html'">Go Back</button> <!-- New Home Button -->
+    </div>
+
+    <!-- User Table -->
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>User ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Contact</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+    </table>
+</div>
+
+<script>
+    async function fetchUsers() {
+       // fetch('/api/admin/users/getallusers')
+        //    .then(response => response.json())
+        //    .then(data => {
+			const response = await fetch('/api/admin/users/getallusers'); // Send request
+		//	console.log("message",response);
+			        const data = await response.json(); // Parse JSON
+					
+					
+                const tbody = document.getElementById("userTableBody");
+                tbody.innerHTML = "";
+
+                data.forEach(user => {
+                    const row = `
+                        <tr>
+                            <td>${user.userId}</td>
+                            <td>${user.name}</td>
+                            <td>${user.email}</td>
+                            <td>${user.role}</td>
+                            <td>${user.contactNumber}</td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick="editUser('${user.userId}')">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.userId}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+          //  })
+          //  .catch(error => console.error("Error fetching users:", error));
+    }
+
+    function editUser(userId) {
+        window.location.href = `/edit-user.html?userId=${userId}`;
+    }
+
+    function deleteUser(userId) {
+        if (confirm("Are you sure you want to delete this user?")) {
+            fetch(`/api/admin/users/deleteuserbyid/${userId}`, {
+                method: 'DELETE'
+            })
+            .then(() => {
+                alert("User deleted successfully!");
+                fetchUsers();
+            })
+            .catch(err => console.error("Delete error:", err));
+        }
+    }
+
+    window.onload = fetchUsers;
+</script>
+
+</body>
+</html>
