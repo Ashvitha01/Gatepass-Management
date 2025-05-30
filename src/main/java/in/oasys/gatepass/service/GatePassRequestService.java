@@ -4,12 +4,12 @@ import in.oasys.gatepass.dto.GatePassRequestDTO;
 import in.oasys.gatepass.dto.UserDTO;
 import in.oasys.gatepass.entity.BlacklistedStudents;
 import in.oasys.gatepass.entity.GatePassRequestEntity;
-import in.oasys.gatepass.entity.GatePassRequestEntity.Status;
+
 import in.oasys.gatepass.entity.NotificationEntity;
 import in.oasys.gatepass.entity.User;
 import in.oasys.gatepass.repository.*;
 import jakarta.mail.internet.MimeMessage;
-import jakarta.transaction.Transactional;
+
 import lombok.extern.log4j.Log4j2;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +20,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 //import in.oasys.gatepass.entity.GatePassRequestEntity.Gatepasstype;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 @Log4j2
 @Service
 public class GatePassRequestService {
@@ -63,9 +64,9 @@ public class GatePassRequestService {
 		// Check last gate pass must be COMPLETED
 		GatePassRequestEntity latestRequest = gatePassRequestRepository
 				.findByStudentidOrderByRequestId(student.getUserId());
-		log.info("latestRequest ===========>>> ,{}",latestRequest);
+		log.info("latestRequest ===========>>> ,{}", latestRequest);
 
-		if (latestRequest!=null) {
+		if (latestRequest != null) {
 			GatePassRequestEntity lastRequest = latestRequest;
 
 			if (lastRequest.getType() == GatePassRequestEntity.Gatepasstype.ENTRY
@@ -121,8 +122,8 @@ public class GatePassRequestService {
 		// Check last gate pass must be VALIDATED
 		GatePassRequestEntity latestRequest = gatePassRequestRepository
 				.findByStudentidOrderByRequestId(student.getUserId());
-		log.info("latestRequest ===========>>> ,{}",latestRequest);
-		if (latestRequest==null) {
+		log.info("latestRequest ===========>>> ,{}", latestRequest);
+		if (latestRequest == null) {
 			throw new IllegalStateException(
 					"No previous entry found. You must complete an entry gate pass before submitting an exit gate pass.");
 		}
@@ -178,7 +179,7 @@ public class GatePassRequestService {
 			}
 
 			if (existing.getType() != GatePassRequestEntity.Gatepasstype.ENTRY) {
-				throw new IllegalStateException("Only ENTRY  typr requests can be updated ");
+				throw new IllegalStateException("Only ENTRY  type requests can be updated ");
 			}
 			// Save the file and get the document path
 			String documentPath = filestorageservice.storeFile(file); // Save the file and get the document path

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import in.oasys.gatepass.dto.ResponseDTO;
 import in.oasys.gatepass.dto.UserDTO;
 import in.oasys.gatepass.entity.User;
 import in.oasys.gatepass.repository.UserRepository;
@@ -36,23 +37,20 @@ public class UserService {
 		return "Password changed successfully.";
 	}
 
+
+
 	public User checklogin(UserDTO request) {
-		try {
-			User user = userRepository.findByUserId(request.getUserId())
-					.orElseThrow(() -> new RuntimeException("User not found"));
+	    User user = userRepository.findByUserId(request.getUserId())
+	        .orElseThrow(() -> new RuntimeException("User not found"));
 
-			if (!passwordEncoder.matches(request.getPasswordHash(), user.getPasswordHash())) {
-				throw new RuntimeException("Wrong password");
-			}
+	    if (!passwordEncoder.matches(request.getPasswordHash(), user.getPasswordHash())) {
+	        throw new RuntimeException("Invalid user ID or password.");
+	    }
 
-			return user;
-
-		} catch (Exception e) {
-			e.printStackTrace(); // or use a logger
-			throw new RuntimeException("Login failed: " + e.getMessage());
-		}
+	    return user;
 	}
 
+	
 	// Save User (Create)
 	public UserDTO saveUser(UserDTO dto) {
 		if (dto.getPasswordHash() == null || dto.getPasswordHash().isEmpty()) {
@@ -69,7 +67,7 @@ public class UserService {
 		user.setName(dto.getName());
 		user.setEmail(dto.getEmail());
 		user.setContactNumber(dto.getContactNumber());
-		user.setRole(User.Role.valueOf(dto.getRole())); // Ensure role exists in Enum
+		user.setRole(User.Role.valueOf(dto.getRole()));
 		user.setPasswordHash(passwordEncoder.encode(dto.getPasswordHash())); // Directly use the password without
 																				// encoding
 
@@ -86,7 +84,7 @@ public class UserService {
 			user.setEmail(dto.getEmail());
 			user.setPasswordHash(dto.getPasswordHash());
 			user.setContactNumber(dto.getContactNumber());
-			user.setRole(User.Role.valueOf(dto.getRole())); // Ensure role exists in Enum
+			user.setRole(User.Role.valueOf(dto.getRole()));
 
 			// Update password only if it's provided
 			if (dto.getPasswordHash() != null && !dto.getPasswordHash().isEmpty()) {

@@ -1,6 +1,8 @@
 package in.oasys.gatepass.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 import in.oasys.gatepass.dto.UserDTO;
 import in.oasys.gatepass.entity.User;
 import in.oasys.gatepass.service.UserService;
+import lombok.extern.log4j.Log4j2;
 
 @CrossOrigin("*")
 @RestController
 @RequestMapping("/api/admin/users")
+@Log4j2
 public class UserController {
 
 	@Autowired
@@ -38,16 +42,30 @@ public class UserController {
 	}
 
 	@PostMapping("/checklogin")
-	public ResponseEntity<UserDTO> checklogin(@RequestBody UserDTO request) {
-		User result = userService.checklogin(request);
-		if (result != null) {
-			UserDTO dto = userService.getUserById(result.getUserId())
-					.orElseThrow(() -> new RuntimeException("User not found after login"));
-			return ResponseEntity.ok(dto);
-		} else {
-			return ResponseEntity.badRequest().build();
-		}
+	public ResponseEntity<?> checklogin(@RequestBody UserDTO request) {
+	    try {
+	        User user = userService.checklogin(request);
+
+	        if (user == null) {
+	            Map<String, String> error = new HashMap<>();
+	            error.put("message", "Invalid user ID or password.");
+	            return ResponseEntity.status(401).body(error);
+	        }
+
+	        UserDTO dto = userService.getUserById(user.getUserId())
+	                .orElseThrow(() -> new RuntimeException("User not found after login"));
+
+	        return ResponseEntity.ok(dto);
+
+	    } catch (Exception e) {
+	        Map<String, String> error = new HashMap<>();
+	        error.put("message", "Login failed: " + e.getMessage());
+	        return ResponseEntity.status(500).body(error);
+	    }
 	}
+
+
+
 
 	// Create User
 	@PostMapping("/createuser")

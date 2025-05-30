@@ -41,6 +41,10 @@ public class SecurityValidationService {
 		}
 		LocalDateTime now = LocalDateTime.now();
 
+		if (gatePass.getEntrytime() == null) {
+		    throw new RuntimeException(" Entry Denied! Complete the exit Gatepass .");
+		}
+		
 		if (now.isAfter(gatePass.getEntrytime())) {
 			throw new RuntimeException("Entry denied! Gate pass is expired or invalid.");
 		}
@@ -83,6 +87,9 @@ public class SecurityValidationService {
 		}
 		LocalDateTime now = LocalDateTime.now();
 		
+		if (gatePass.getExittime() == null) {
+		    throw new RuntimeException(" Exit Denied! Complete the Entry Gatepass .");
+		}
 
 		if (now.isAfter(gatePass.getExittime())) {
 			throw new RuntimeException("Exit denied! Gate pass is expired or invalid.");
